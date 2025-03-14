@@ -4,6 +4,8 @@ import CombinedInfoSection from "./CombinedInfoSection";
 import SignatureSection from "./SignatureSection";
 import FormActions from "./FormActions";
 import SuccessDialog from "./SuccessDialog";
+import { saveAttendance } from "@/lib/attendance";
+import { useToast } from "@/components/ui/use-toast";
 
 const AttendanceFormContainer = () => {
   // Form state
@@ -19,6 +21,7 @@ const AttendanceFormContainer = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -50,14 +53,31 @@ const AttendanceFormContainer = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Save data to Supabase
+      const result = await saveAttendance({
+        name,
+        nip,
+        position,
+        institution,
+        region,
+        department,
+        signature,
+      });
+
+      if (!result.success) {
+        throw new Error("Gagal menyimpan data");
+      }
 
       // Show success dialog
       setShowSuccess(true);
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Handle error (could show an error toast/dialog here)
+      toast({
+        variant: "destructive",
+        title: "Gagal menyimpan data",
+        description:
+          "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.",
+      });
     } finally {
       setIsSubmitting(false);
     }
