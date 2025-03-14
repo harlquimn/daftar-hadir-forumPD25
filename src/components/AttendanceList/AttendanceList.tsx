@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import ExportButtons from "./ExportButtons";
 
 const AttendanceList = () => {
   const [attendances, setAttendances] = useState<AttendanceData[]>([]);
@@ -48,7 +49,9 @@ const AttendanceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
-        <div className="flex justify-end mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <ExportButtons data={attendances} isDisabled={loading} />
+
           <Button onClick={fetchAttendances} variant="outline" size="sm">
             {loading ? (
               <>

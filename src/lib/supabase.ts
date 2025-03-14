@@ -1,14 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Use default values for development when env variables are not set
-const supabaseUrl =
-  import.meta.env.VITE_SUPABASE_URL ||
-  "https://placeholder-project.supabase.co";
-const supabaseAnonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY || "placeholder-key";
+// Get Supabase credentials from environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Mock implementation for development when Supabase is not configured
+// Check if we're using mock implementation
 export const isMockSupabase =
-  !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+  !supabaseUrl ||
+  supabaseUrl.includes("placeholder") ||
+  !supabaseAnonKey ||
+  supabaseAnonKey === "placeholder-key";

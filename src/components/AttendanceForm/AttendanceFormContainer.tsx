@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FormHeader from "./FormHeader";
 import CombinedInfoSection from "./CombinedInfoSection";
 import SignatureSection from "./SignatureSection";
@@ -23,11 +23,55 @@ const AttendanceFormContainer = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
+  // Clear errors when field is updated
+  useEffect(() => {
+    if (name && errors.name) {
+      setErrors((prev) => ({ ...prev, name: undefined }));
+    }
+  }, [name]);
+
+  useEffect(() => {
+    if (nip && errors.nip) {
+      setErrors((prev) => ({ ...prev, nip: undefined }));
+    }
+  }, [nip]);
+
+  useEffect(() => {
+    if (position && errors.position) {
+      setErrors((prev) => ({ ...prev, position: undefined }));
+    }
+  }, [position]);
+
+  useEffect(() => {
+    if (institution && errors.institution) {
+      setErrors((prev) => ({ ...prev, institution: undefined }));
+    }
+  }, [institution]);
+
+  useEffect(() => {
+    if (region && errors.region) {
+      setErrors((prev) => ({ ...prev, region: undefined }));
+    }
+  }, [region]);
+
+  useEffect(() => {
+    if (department && errors.department) {
+      setErrors((prev) => ({ ...prev, department: undefined }));
+    }
+  }, [department]);
+
+  useEffect(() => {
+    if (signature && errors.signature) {
+      setErrors((prev) => ({ ...prev, signature: undefined }));
+    }
+  }, [signature]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) newErrors.name = "Nama harus diisi";
     if (!nip.trim()) newErrors.nip = "NIP harus diisi";
+    if (!/^\d+$/.test(nip)) newErrors.nip = "NIP hanya boleh berisi angka";
     if (!position.trim()) newErrors.position = "Jabatan harus diisi";
     if (!institution.trim()) newErrors.institution = "Instansi harus diisi";
     if (!region) newErrors.region = "Wilayah harus dipilih";
@@ -42,6 +86,13 @@ const AttendanceFormContainer = () => {
     e.preventDefault();
 
     if (!validateForm()) {
+      // Show toast for validation errors
+      toast({
+        variant: "destructive",
+        title: "Form tidak lengkap",
+        description: "Mohon lengkapi semua field yang wajib diisi",
+      });
+
       // Scroll to the first error
       const firstErrorId = Object.keys(errors)[0];
       const element = document.getElementById(firstErrorId);
@@ -121,9 +172,14 @@ const AttendanceFormContainer = () => {
             setRegion={setRegion}
             department={department}
             setDepartment={setDepartment}
+            errors={errors}
           />
 
-          <SignatureSection signature={signature} setSignature={setSignature} />
+          <SignatureSection
+            signature={signature}
+            setSignature={setSignature}
+            errors={errors}
+          />
 
           <FormActions
             onSubmit={handleSubmit}

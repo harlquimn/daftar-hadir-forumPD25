@@ -22,6 +22,7 @@ interface CombinedInfoSectionProps {
   setRegion: (value: string) => void;
   department: string;
   setDepartment: (value: string) => void;
+  errors?: Record<string, string>;
 }
 
 const CombinedInfoSection = ({
@@ -37,6 +38,7 @@ const CombinedInfoSection = ({
   setRegion = () => {},
   department = "",
   setDepartment = () => {},
+  errors = {},
 }: CombinedInfoSectionProps) => {
   // Sample data for dropdowns
   const regions = [
@@ -58,6 +60,14 @@ const CombinedInfoSection = ({
     "Tata Ruang & Pertanahan",
   ];
 
+  const handleNipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow digits
+    if (value === "" || /^\d+$/.test(value)) {
+      setNip(value);
+    }
+  };
+
   return (
     <div className="w-full bg-card p-4 rounded-md shadow-sm">
       <h3 className="text-lg font-semibold mb-4">Daftar Hadir Peserta</h3>
@@ -72,20 +82,28 @@ const CombinedInfoSection = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            className={errors.name ? "border-destructive" : ""}
           />
+          {errors.name && (
+            <p className="text-destructive text-sm">{errors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="nip">
             NIP <span className="text-destructive">*</span>
           </Label>
           <Input
-            type="number"
             id="nip"
+            type="number"
             placeholder="Masukkan NIP"
             value={nip}
-            onChange={(e) => setNip(e.target.value)}
+            onChange={handleNipChange}
             required
+            className={errors.nip ? "border-destructive" : ""}
           />
+          {errors.nip && (
+            <p className="text-destructive text-sm">{errors.nip}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="position">
@@ -97,7 +115,11 @@ const CombinedInfoSection = ({
             value={position}
             onChange={(e) => setPosition(e.target.value)}
             required
+            className={errors.position ? "border-destructive" : ""}
           />
+          {errors.position && (
+            <p className="text-destructive text-sm">{errors.position}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="institution">
@@ -109,14 +131,21 @@ const CombinedInfoSection = ({
             value={institution}
             onChange={(e) => setInstitution(e.target.value)}
             required
+            className={errors.institution ? "border-destructive" : ""}
           />
+          {errors.institution && (
+            <p className="text-destructive text-sm">{errors.institution}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="region">
             Wilayah <span className="text-destructive">*</span>
           </Label>
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger id="region">
+            <SelectTrigger
+              id="region"
+              className={errors.region ? "border-destructive" : ""}
+            >
               <SelectValue placeholder="Pilih wilayah" />
             </SelectTrigger>
             <SelectContent>
@@ -127,13 +156,19 @@ const CombinedInfoSection = ({
               ))}
             </SelectContent>
           </Select>
+          {errors.region && (
+            <p className="text-destructive text-sm">{errors.region}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="department">
             Bidang/Urusan <span className="text-destructive">*</span>
           </Label>
           <Select value={department} onValueChange={setDepartment}>
-            <SelectTrigger id="department">
+            <SelectTrigger
+              id="department"
+              className={errors.department ? "border-destructive" : ""}
+            >
               <SelectValue placeholder="Pilih bidang/urusan" />
             </SelectTrigger>
             <SelectContent>
@@ -144,6 +179,9 @@ const CombinedInfoSection = ({
               ))}
             </SelectContent>
           </Select>
+          {errors.department && (
+            <p className="text-destructive text-sm">{errors.department}</p>
+          )}
         </div>
       </div>
     </div>
