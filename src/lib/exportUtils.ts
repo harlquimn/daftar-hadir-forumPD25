@@ -181,10 +181,12 @@ export const exportToWord = (data: AttendanceData[]) => {
       <meta charset="utf-8">
       <title>Daftar Kehadiran</title>
       <style>
-        @page {
-          size: Legal;
-          margin: 1cm;
+        @page Section1 {
+          size: 8.5in 14in; /* Ukuran Legal dalam inci */
+          margin: 1cm 1cm 1cm 1cm; /* Margin atas, kanan, bawah, kiri */
         }
+        div.Section1 { page: Section1; } /* Menentukan bahwa dokumen menggunakan Section1 */
+
         body {
           font-family: Arial, sans-serif;
           font-size: 11pt;
@@ -193,32 +195,33 @@ export const exportToWord = (data: AttendanceData[]) => {
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
         .header { text-align: center; margin-bottom: 20px; }
-        .signature-img { width: auto; max-width: 100px; height: auto; max-height: 50px; display: block; margin: auto; }
+        .signature-img { width: 133px; height: 38px; max-height: 50px; display: block; margin: auto; }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h2>Daftar Kehadiran Forum Perangkat Daerah Tahun 2025</h2>
-        <h3>Dinas Pekerjaan Umum Penataan Ruang & Perumahan Rakyat Kawasan Permukiman</h3>
-        <h3>Provinsi Kepulauan Bangka Belitung</h3>
-      </div>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>NIP</th>
-            <th>Jabatan</th>
-            <th>Instansi</th>
-            <th>Wilayah</th>
-            <th>Bidang/Urusan</th>
-            <th>TTD</th>
-            <th>Tanggal</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+      <div class="Section1">
+        <div class="header">
+          <h2>Daftar Kehadiran Forum Perangkat Daerah Tahun 2025</h2>
+          <h3>Dinas Pekerjaan Umum Penataan Ruang & Perumahan Rakyat Kawasan Permukiman</h3>
+          <h3>Provinsi Kepulauan Bangka Belitung</h3>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>NIP</th>
+              <th>Jabatan</th>
+              <th>Instansi</th>
+              <th>Wilayah</th>
+              <th>Bidang/Urusan</th>
+              <th>TTD</th>
+              <th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
   // Add table rows with signatures
   data.forEach((item, index) => {
@@ -227,23 +230,24 @@ export const exportToWord = (data: AttendanceData[]) => {
       : `<td></td>`;
 
     htmlContent += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${item.name}</td>
-        <td>${item.nip}</td>
-        <td>${item.position}</td>
-        <td>${item.institution}</td>
-        <td>${item.region}</td>
-        <td>${item.department}</td>
-        ${signatureCell}
-        <td>${formatDate(item.created_at)}</td>
-      </tr>
-    `;
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.nip}</td>
+          <td>${item.position}</td>
+          <td>${item.institution}</td>
+          <td>${item.region}</td>
+          <td>${item.department}</td>
+          ${signatureCell}
+          <td>${formatDate(item.created_at)}</td>
+        </tr>
+      `;
   });
 
   htmlContent += `
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </body>
     </html>
   `;

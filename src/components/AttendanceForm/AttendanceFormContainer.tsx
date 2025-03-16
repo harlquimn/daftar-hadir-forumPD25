@@ -150,6 +150,13 @@ const AttendanceFormContainer = () => {
     resetForm();
   };
 
+  // Reset form after successful submission
+  useEffect(() => {
+    if (showSuccess) {
+      resetForm();
+    }
+  }, [showSuccess]);
+
   return (
     <div className="w-full max-w-4xl mx-auto bg-background">
       <form

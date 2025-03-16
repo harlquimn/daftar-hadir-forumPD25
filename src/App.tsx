@@ -3,7 +3,6 @@ import { Routes, Route, useLocation, useRoutes } from "react-router-dom";
 import Home from "./components/home";
 import routes from "tempo-routes";
 import { Toaster } from "@/components/ui/toaster";
-import Navbar from "./components/Navigation/Navbar";
 
 const AdminPage = lazy(() => import("./pages/admin"));
 
@@ -22,7 +21,6 @@ function App() {
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <>
-        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin" element={<AdminPage />} />

@@ -2,11 +2,55 @@ import React, { useRef, useState, useEffect } from "react";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 
+interface SignatureBounds {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
 interface SignatureSectionProps {
   signature: string;
   setSignature: (value: string) => void;
   errors?: Record<string, string>;
 }
+
+// Helper function to get the actual bounds of the signature
+const getSignatureBounds = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): SignatureBounds | null => {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  let minX = width;
+  let minY = height;
+  let maxX = 0;
+  let maxY = 0;
+  let foundPixel = false;
+
+  // Scan the canvas for non-transparent pixels
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const alpha = data[(y * width + x) * 4 + 3];
+      if (alpha > 0) {
+        foundPixel = true;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  // Return null if no signature was found
+  if (!foundPixel) {
+    return null;
+  }
+
+  return { minX, minY, maxX, maxY };
+};
 
 const SignatureSection = ({
   signature = "",
@@ -18,7 +62,7 @@ const SignatureSection = ({
   const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 });
   const [signatureData, setSignatureData] = useState<ImageData | null>(null);
 
-  // Initialize canvas and restore signature if exists
+  // Initialize canvas without restoring signature
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,11 +78,6 @@ const SignatureSection = ({
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.strokeStyle = "#000";
-
-    // Restore signature if we have saved data
-    if (signatureData) {
-      ctx.putImageData(signatureData, 0, 0);
-    }
 
     // Handle window resize
     const handleResize = () => {
@@ -63,7 +102,7 @@ const SignatureSection = ({
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [signatureData]);
+  }, []);
 
   // Handle scroll events to preserve drawing
   useEffect(() => {
@@ -74,38 +113,43 @@ const SignatureSection = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Save current drawing if we don't have it saved yet
-      if (!signatureData) {
-        const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        setSignatureData(currentData);
-      } else {
-        // Restore the drawing
+      // Only restore if we have signature data and we're not in the middle of drawing
+      if (signatureData && !isDrawing) {
         ctx.putImageData(signatureData, 0, 0);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [signatureData]);
+  }, [signatureData, isDrawing]);
 
-  // Restore signature from props if available
+  // Restore signature from props if available or clear if empty
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Clear the canvas first to prevent double drawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if (signature && signature.startsWith("data:image")) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
       const img = new Image();
       img.onload = () => {
+        // Clear again before drawing to ensure no double images
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         setSignatureData(currentData);
       };
       img.src = signature;
+    } else if (!signature) {
+      // Clear the canvas when signature is empty (after form submission)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      setSignatureData(null);
     }
-  }, []);
+  }, [signature]);
 
   const startDrawing = (
     e:
@@ -189,9 +233,44 @@ const SignatureSection = ({
     const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     setSignatureData(currentData);
 
-    // Save the signature as data URL
-    const dataUrl = canvas.toDataURL("image/png");
-    setSignature(dataUrl);
+    // Get the bounds of the actual signature
+    const bounds = getSignatureBounds(ctx, canvas.width, canvas.height);
+
+    if (bounds) {
+      // Create a temporary canvas to crop the signature
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      if (tempCtx) {
+        // Add some padding around the signature
+        const padding = 10;
+        const width = bounds.maxX - bounds.minX + padding * 2;
+        const height = bounds.maxY - bounds.minY + padding * 2;
+
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+
+        // Draw only the signature area to the temp canvas
+        tempCtx.drawImage(
+          canvas,
+          bounds.minX - padding,
+          bounds.minY - padding,
+          width,
+          height,
+          0,
+          0,
+          width,
+          height,
+        );
+
+        // Save the cropped signature as data URL
+        const dataUrl = tempCanvas.toDataURL("image/png");
+        setSignature(dataUrl);
+      }
+    } else {
+      // If no signature is detected, save an empty signature
+      setSignature("");
+    }
   };
 
   const clearSignature = () => {
